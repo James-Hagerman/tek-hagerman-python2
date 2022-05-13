@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class = 'jumbotron'>
+        <h1>Here is a list of all owners:</h1>
+        <ul>
+            {% for owner in owners %} 
+                <li>{{owner}}</li>
+                {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

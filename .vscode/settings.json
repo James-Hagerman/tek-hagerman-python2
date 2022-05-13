@@ -1,0 +1,6 @@
+{
+    "python.pythonPath": "C:\\Users\\james\\.virtualenvs\\tek-hagerman-python2-w2nVW8Hi\\Scripts\\python.exe",
+    "python.analysis.extraPaths": [
+        "./hagerman_james_hw6_flask_pandas"
+    ]
+}
