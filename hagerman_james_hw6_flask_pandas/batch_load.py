@@ -1,6 +1,7 @@
 import mysql.connector
 # import MySQLdb
 import pandas as pd
+from app import rel_table
 import csv
 import sys
 from sqlalchemy import create_engine
@@ -24,12 +25,12 @@ print(csv_data_owners.head(20))
 csv_data_puppies.to_sql('puppies', con = engine, if_exists = 'append', index = False)
 csv_data_owners.to_sql('owners', con = engine, if_exists = 'append', index = False)
 
+# df_rel = pd.read_sql_table('rel_table', engine)
+# print(df_rel)
 
 
+# rel_df = pd.merge(df_rel, csv_data_owners, how = 'outer', left_on = 'owner_id', right_index = True)
+# rel_df = rel_df.drop(['name', 'puppy_id'], axis = 1)
+# print(rel_df)
+# rel_df = pd.merge(rel_df, csv_data_puppies, how = 'left', right_index = True, left_on = 'pup_id')
 
-merging = pd.merge(csv_data_puppies, csv_data_owners, how = 'inner', on = 'pup_id')
-# print(merging)
-# flask_migrate = True 
-
-
-# pd.merge(petdata, ownerdata, how = left, on ownerid)
