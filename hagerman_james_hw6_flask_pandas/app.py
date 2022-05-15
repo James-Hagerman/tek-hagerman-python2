@@ -4,13 +4,17 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime 
 from flask_migrate import Migrate
 from forms import AddForm, AddOwnerForm, DelForm
+from sqlalchemy.ext.declarative import declarative_base
+#from sqlalchemy import MetaData
 
-
+Base = declarative_base()
+#metadata = MetaData()
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'mysecretkey'
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1A2s3D4f5G6h7J8k9L0z1Z2x3C4v5B6n7M@localhost/adoption'
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -20,20 +24,24 @@ db = SQLAlchemy(app)
 Migrate(app,db)
 #####################################
 
+rel_table = db.Table('rel_table', 
+        # db.Column('id', db.Integer, primary_key = True),
+        db.Column('pup_id', db.Integer, db.ForeignKey('puppies.pup_id', primary_key = True)),
+        db.Column('owner_id', db.Integer, db.ForeignKey('owners.owner_id'))
+        )
+
+
 class Puppy(db.Model):
 
     __tablename__ = 'puppies'
 
-    id = db.Column(db.Integer, primary_key = True)
+    pup_id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.Text, nullable = False)
     age = db.Column(db.Integer, nullable = False)
     breed = db.Column(db.Text, nullable = False)
-    # ONE TO MANY 
-    # puppy to many toys
-    # toy = db.relationship('Toy', backref = 'puppy', lazy = 'dynamic')
-    # ONE TO ONE
-    # One puppy to one owner 
-    owner = db.relationship('Owner', backref = 'puppy', uselist = False)
+    owner_id = db.relationship('Owner', backref = 'owner')
+    following = db.relationship('Owner', secondary = rel_table, backref = 'followers')
+
 
     def __init__(self,name,age,breed):
         self.name = name
@@ -41,40 +49,28 @@ class Puppy(db.Model):
         self.breed = breed
 
     def __repr__(self):
-        if self.owner:
-            return f"Puppy {self.name} is a {self.breed} that is {self.age} year/s old and their owner is {self.owner.name}."
+        if self.owner_id:
+            return f"Puppy {self.name} is a {self.breed} that is {self.age} year/s old and their owner is {self.owner_id}"
         else:
-            return f"Puppy {self.name} is a {self.breed} that is {self.age} year/s old and they have no owner yet!"
-    
-    # def report_toys(self):
-    #     print("Here are my toys:")
-    #     for toy in self.toy:
-    #         print(toy.item_name)
-
-# class Toy(db.Model):
-
-#     __tablename__ = 'toys'
-
-#     id = db.Column(db.Integer, primary_key = True)
-#     item_name = db.Column(db.Text)
-#     puppy_id = db.Column(db.Integer, db.ForeignKey('puppies.id'))
-
-#     def __init__(self, item_name, puppy_id):
-#         self.item_name = item_name
-#         self.puppy_id = puppy_id
+            return f"Puppy {self.name} is a {self.breed} that is {self.age} year/s old and they have no owner yet! Their ID is {self.pup_id}"
 
 
 class Owner(db.Model):
 
     __tablename__ = 'owners'
 
-    id = db.Column(db.Integer, primary_key = True)
+    owner_id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.Text, nullable = False)
-    puppy_id = db.Column(db.Integer, db.ForeignKey('puppies.id'))
+    puppy_id = db.Column(db.Integer, db.ForeignKey('puppies.pup_id'))
+    #following = db.relationship('Puppy', secondary = rel_table, backref = 'followers')
 
     def __init__(self, name, puppy_id):
         self.name = name
         self.puppy_id = puppy_id
+
+    def __repr__(self):
+        return f'Owner Name: {self.name}, Owner ID: {self.owner_id}'
+
 
 db.create_all()
 # VIEW FUNCTIONS 
@@ -120,7 +116,7 @@ def add_owner():
 def list_pup():
     
     puppies = Puppy.query.all()
-    return render_template('list.html', puppies = puppies)
+    return render_template('list.html', puppies=puppies)
 
 @app.route('/delete', methods = ['GET', 'POST'])
 def del_pup():
